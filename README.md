@@ -1,6 +1,6 @@
 # Everyday quotes app
 
-Everyday quotes - read new quote everyday!
+Everyday quotes - read new quotes everyday!
 
 Click button to display a random quote and click copy if you want to paste it somewhere.
 It's just that easy.
