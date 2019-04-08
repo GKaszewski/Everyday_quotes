@@ -5,6 +5,8 @@ import 'package:everyday_quotes/quotation.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flushbar/flushbar.dart';
+import 'package:share/share.dart';
+import 'package:splashscreen/splashscreen.dart';
 
 void main() {
   runApp(new EverydayQuotesApp());
@@ -20,6 +22,26 @@ class EverydayQuotesApp extends StatelessWidget {
   }
 }
 
+class SplashScreenWidget extends StatefulWidget{
+  @override
+  State<StatefulWidget> createState() {
+    return new SplashScreenWidgetState();
+  }
+
+}
+
+class SplashScreenWidgetState extends State<SplashScreenWidget>{
+  @override
+  Widget build(BuildContext context) {
+    return new SplashScreen(
+      seconds: 2,
+      navigateAfterSeconds: new HomeScreen(),
+      image: Image.asset('Quotes_logo.png'),
+    );
+  }
+
+}
+
 class HomeScreen extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => new HomeScreenState();
@@ -28,8 +50,7 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   Quotation quote;
   String quoteText = "";
-  String url =
-      'http://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1';
+  String url = 'https://favqs.com/api/qotd';
 
   void copyQuote(BuildContext context) {
     var data = new ClipboardData(text: quoteText);
@@ -38,18 +59,23 @@ class HomeScreenState extends State<HomeScreen> {
       message: "Copied to clipboard!",
       duration: Duration(seconds: 3),
       flushbarPosition: FlushbarPosition.BOTTOM,
+      backgroundColor: Color(0xFF27ae60),
     );
 
     flushbar.show(context);
   }
 
-  Future fetchQuote() async {
+  void shareQuote(String quote) {
+    Share.share(quote);
+  }
+
+  Future<void> fetchQuote() async {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       quote = Quotation.fromJson(json.decode(response.body));
       setState(() {
-        quoteText = quote.actualQuote;
+        quoteText = quote.quote;
       });
     } else
       throw Exception('Failed to load data...');
@@ -62,6 +88,7 @@ class HomeScreenState extends State<HomeScreen> {
       appBar: new AppBar(
         title: new Text("Everyday quotes"),
         backgroundColor: new Color(0xFF27ae60),
+        elevation: 0.0,
       ),
       body: new Center(
         child: new Column(
@@ -69,34 +96,61 @@ class HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.all(10.0),
-            ),
-            new Text("Press a button below to get a quote."),
-            new RaisedButton(
-              onPressed: fetchQuote,
-              textColor: Colors.white,
-              color: new Color(0xFF27ae60),
-              child: new Text("Get"),
-            ),
-            Padding(
-              padding: EdgeInsets.all(4.0),
-            ),
-            new Container(
-              width: screenWidth,
-              child: new Column(
-                children: <Widget>[
-                  new Text(
-                    quoteText,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+              padding: const EdgeInsets.all(8.0),
+              child: new Container(
+                width: screenWidth,
+                child: new Column(
+                  children: <Widget>[
+                    new Text(
+                      quoteText,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ),
-            new RaisedButton(
-              onPressed: () => copyQuote(context),
-              textColor: Colors.white,
-              color: new Color(0xFF27ae60),
-              child: new Text("Copy"),
+            Expanded(
+              child: new Container(),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Container(
+                height: 40,
+                color: Colors.white24,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    new RawMaterialButton(
+                      shape: CircleBorder(),
+                      onPressed: fetchQuote,
+                      fillColor: new Color(0xFF2ecc71),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: new Icon(Icons.library_add, color: Colors.white,),
+                      ),
+                    ),
+                    new RawMaterialButton(
+                      shape: CircleBorder(),
+                      onPressed: () => copyQuote(context),
+                      fillColor: new Color(0xFF2ecc71),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: new Icon(Icons.content_copy, color: Colors.white,),
+                      ),
+                    ),
+                    new RawMaterialButton(
+                      shape: CircleBorder(),
+                      onPressed: () => shareQuote(quoteText),
+                      fillColor: new Color(0xFF2ecc71),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Icon(Icons.share, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
